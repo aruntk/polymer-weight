@@ -1,0 +1,43 @@
+{
+  "name": "polymer-weight",
+  "version": "1.0.0-beta.1",
+  "description": "size of imported components and scripts",
+  "main": "index.js",
+  "scripts": {
+    "compile": "babel --presets es2015 -d lib/ src/",
+    "prepublish": "npm run compile",
+    "test": "npm run compile && jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aruntk/polymer-weight.git"
+  },
+  "keywords": [
+    "polymer",
+    "weight",
+    "size",
+    "webcomponents",
+    "html",
+    "link",
+    "import",
+    "script",
+    "style"
+  ],
+  "author": "aruntk",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aruntk/polymer-weight/issues"
+  },
+  "homepage": "https://github.com/aruntk/polymer-weight#readme",
+  "dependencies": {
+    "polymer-analyzer": "^2.0.0-alpha.19"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-preset-es2015": "^6.14.0",
+    "jest": "^18.1.0",
+    "eslint": "^3.14.1",
+    "eslint-config-airbnb-base": "^11.0.1",
+    "eslint-plugin-import": "^2.2.0"
+  }
+}
