@@ -52,3 +52,10 @@ More features coming. :)
 - [ ] Show dependency relationship in some way so that user can know which link to remove to reduce size.
 - [ ] Handle css imports.
 
+### Like it?
+
+:star: this repo
+
+### Found a bug?
+
+Raise an issue!
