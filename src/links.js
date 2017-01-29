@@ -1,13 +1,13 @@
 import path from 'path';
 import fs from 'fs';
 import * as _ from 'lodash';
-import parser from '..';
+import { parse } from './parser';
 
 let store = {};
 export const parseFile = function(filePath, result) {
   store = result;
-  const html = fs.readFileSync(filePath);
-  parser.parse(html, store, filePath);
+  const html = fs.readFileSync(filePath, "utf8",);
+  parse(html, store, filePath);
   const links = _.keys(store);
   return Promise.all(links.map(processLinks));
 }
@@ -20,6 +20,7 @@ export const attachStats = function(link) {
         ast.status = 'error';
         reject(err);
       }
+      ast.fileStats = data;
       resolve(data);
     });
   });
@@ -27,10 +28,11 @@ export const attachStats = function(link) {
 export const readFile = function(link) {
   const ast = store[link];
   return new Promise((resolve, reject) => {
-    fs.readFile(link, (err, data) => {
+    fs.readFile(link, "utf8", (err, data) => {
       if (err) {
         reject(err);
       }
+      ast.fileContents = data;
       resolve(data);
     });
   });

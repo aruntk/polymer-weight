@@ -1,4 +1,4 @@
-import { parse as parseHTML } from 'parse5';
+import { parse as parseHTML, treeAdapters } from 'parse5';
 import url from 'url';
 import path from 'path';
 import * as _ from 'lodash';
@@ -23,13 +23,14 @@ export const getLinks = function(ast, store = {}, filePath = null) {
     switch (child.tagName) {
       case 'template': {
         const content = treeAdapters.default.getTemplateContent(child);
-        parse(content.childNodes);
+        getLinks(content, store, filePath);
       }
+        break;
       case 'link': {
         const link = processLink(child);
         pushLink(link, store, filePath);
       }
-        break
+        break;
       case 'script': {
         const link = processScript(child);
         if(link) {
@@ -57,6 +58,9 @@ export const getLinks = function(ast, store = {}, filePath = null) {
   return store;
 }
 export const pushLink = function(linkAST, store, filePath) {
+  if(!linkAST.urlObject) {
+    throw new Error(`no href found in link at line ${linkAST.__location.col} in file ${filePath}`);
+  }
   const href = linkAST.urlObject.href;
   const __location = linkAST.__location;
   const occurance = {
@@ -86,8 +90,10 @@ const formatUrl = function(href) {
 export const processLink = function(ast) {
   const hrefAttr = _.find(ast.attrs, v => v.name === 'href');
   const link = orphanAST(ast); 
-  const href = hrefAttr.value;
-  link.urlObject = formatUrl(href);
+  if(hrefAttr) {
+    const href = hrefAttr.value;
+    link.urlObject = formatUrl(href);
+  }
   return link;
 }
 export const processScript = function(ast) {
