@@ -44,7 +44,9 @@ try {
     const sortedColl = _.sortBy(group.local, [function(ast) {
       return ast.fileStats.size;
     }]);
+    let netIndexSize = stat.size;
     _.each(sortedColl.reverse(), (ast) => {
+      netIndexSize += ast.fileStats.size;
       const size = filesize(ast.fileStats.size, { base: 10 });
       const absPath = ast.urlObject.absPath;
       const relPath = path.relative(path.dirname(indexPath), absPath);
@@ -54,6 +56,7 @@ try {
       const absPath = ast.urlObject.absPath;
       table.push([ast.tagName, absPath, 'NA']);
     });
+    table.push(['Total', path.basename(indexPath), filesize(netIndexSize, { base: 10 })]);
     console.log(table.toString());
   });
 }
