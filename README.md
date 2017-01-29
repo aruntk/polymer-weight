@@ -54,7 +54,7 @@ More features coming. :)
 - [x] Net weight added by component and its children.
 - [x] Standalone size (space that can be saved by removing the component)
 - [ ] Show dependency relationship in some way so that user can know which link to remove to reduce size.
-- [ ] Handle css imports.
+- [ ] Handle css imports. @import
 
 ### Like it?
 
