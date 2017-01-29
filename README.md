@@ -33,6 +33,8 @@ weigh --path path/to/file.html --depth 1
 
 Standalone size of the components. ie. space that can be saved by removing the component.
 
+By default table is sorted by standalone weight.
+
 ### Net weight
 
 Net weight of a link.
