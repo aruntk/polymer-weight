@@ -1,4 +1,4 @@
-# :weight_lifting_man: polymer-weight
+# polymer-weight :weight_lifting_man:
 
 size of imported components
 
