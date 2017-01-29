@@ -1,4 +1,5 @@
 import assert from 'assert';
+import path from 'path';
 import parser from '..';
 
 const polymerUrl = 'bower_components/polymer/polymer.html';
@@ -14,19 +15,25 @@ const externalUrlFn = function(ext) {
 describe('link', function () {
   it('returns local href correctly', function () {
     const href = localUrlFn('html', true);
+    const absPath = path.resolve('', href);
     const html = `<link href="${href}" rel="import">`;
-    const links = parser.parse(html, [], 'test.js');
+    const store = parser.parse(html, {}, 'test.js');
+    const links = Object.keys(store);
     const link = links[0];
-    assert.equal(href, link.urlObject.href);
-    assert.equal(true, link.urlObject.local);
+    const linkAST = store[link];
+    assert.equal(absPath, link);
+    assert.equal(href, linkAST.urlObject.href);
+    assert.equal(true, linkAST.urlObject.local);
   });
   it('returns external href correctly', function () {
     const href = externalUrlFn('html', true);
     const html = `<link href="${href}" rel="import">`;
-    const links = parser.parse(html, [], 'test.js');
+    const store = parser.parse(html, {}, 'test.js');
+    const links = Object.keys(store);
     const link = links[0];
-    assert.equal(href, link.urlObject.href);
-    assert.equal(false, link.urlObject.local);
+    const linkAST = store[link];
+    assert.equal(href, link);
+    assert.equal(false, linkAST.urlObject.local);
   });
 });
 
@@ -35,22 +42,27 @@ describe('script', function () {
   it('returns local src correctly', function () {
     const href = localUrlFn('js', true);
     const html = `<script src="${href}">blah</script>`;
-    const links = parser.parse(html, [], 'test.js');
+    const store = parser.parse(html, {}, 'test.js');
+    const links = Object.keys(store);
     const link = links[0];
-    assert.equal(href, link.urlObject.href);
-    assert.equal(true, link.urlObject.local);
+    const linkAST = store[link];
+    assert.equal(href, linkAST.urlObject.href);
+    assert.equal(true, linkAST.urlObject.local);
   });
   it('returns external href correctly', function () {
     const href = externalUrlFn('js', true);
     const html = `<script src="${href}">blah</script>`;
-    const links = parser.parse(html, [], 'test.js');
+    const store = parser.parse(html, {}, 'test.js');
+    const links = Object.keys(store);
     const link = links[0];
-    assert.equal(href, link.urlObject.href);
-    assert.equal(false, link.urlObject.local);
+    const linkAST = store[link];
+    assert.equal(href, link);
+    assert.equal(false, linkAST.urlObject.local);
   });
   it('skips script without src', function () {
     const html = `<script>blah</script>`;
-    const links = parser.parse(html);
+    const store = parser.parse(html, {}, 'test.js');
+    const links = Object.keys(store);
     assert.equal(0, links.length);
   });
 });

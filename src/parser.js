@@ -1,5 +1,6 @@
 import { parse as parseHTML } from 'parse5';
 import url from 'url';
+import path from 'path';
 import * as _ from 'lodash';
 
 const defaultOptions = { locationInfo: true };
@@ -7,15 +8,15 @@ export const getAST = function(html, options = defaultOptions) {
   const ast =  parseHTML(html, options);
   return ast;
 }
-export const parse = function(html, result = [], filePath = null) {
+export const parse = function(html, store = {}, filePath = null) {
   const ast = getAST(html);
-  getLinks(ast, result, filePath);
-  return result;
+  getLinks(ast, store, filePath);
+  return store;
 }
 
-export const getLinks = function(ast, result = [], filePath = null) {
+export const getLinks = function(ast, store = {}, filePath = null) {
   if(!ast || !ast.childNodes) {
-    return result;
+    return store;
   }
   const childNodes = ast.childNodes;
   _.each(childNodes, child => {
@@ -26,13 +27,13 @@ export const getLinks = function(ast, result = [], filePath = null) {
       }
       case 'link': {
         const link = processLink(child);
-        pushLink(link, result, filePath);
+        pushLink(link, store, filePath);
       }
         break
       case 'script': {
         const link = processScript(child);
         if(link) {
-          pushLink(link, result, filePath);
+          pushLink(link, store, filePath);
         }
       }
         break;
@@ -40,39 +41,39 @@ export const getLinks = function(ast, result = [], filePath = null) {
         // case 'style': {
         // const links = processStyle(child);
         // if(links) {
-        // result.concat(link);
+        // Object.values(store).concat(link);
         // }
         // }
         // break;
 
       default: {
         if(child.tagName) {
-          getLinks(child, result, filePath);
+          getLinks(child, store, filePath);
         }
       }
         break;
     };
   });
-  return result;
+  return store;
 }
-const pushLink = function(linkAST, links, filePath) {
+export const pushLink = function(linkAST, store, filePath) {
   const href = linkAST.urlObject.href;
   const __location = linkAST.__location;
   const occurance = {
     filePath,
     __location
   }
-  const prev = _.find(links, (link, i) => {
-    if(link.urlObject.href === href) {
-      links[i].occurances.push(occurance);
-    }
-  });
-  if(!prev) {
+  const absPath = linkAST.urlObject.local ? path.resolve(path.dirname(filePath), href): href;
+
+  if(!store[absPath]) {
     const link = _.omit(linkAST, '__location');
     link.occurances = [occurance];
-    links.push(link)
+    link.urlObject.absPath = absPath;
+    store[absPath] = link;
+  } else {
+    store[absPath].occurances.push(occurance);
   }
-  return links;
+  return store;
 }
 const orphanAST = function(ast) {
   return _.omit(ast, 'parentNode', 'childNodes');
