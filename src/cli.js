@@ -36,12 +36,23 @@ try {
   const store = {};
   parseFile(indexPath, store).then((r) => {
     const astColl = _.values(store);
-    const sortedColl = _.sortBy(astColl, [function(ast) { return ast.fileStats.size; }]);
+    const group = _.groupBy(astColl, ast => ast.urlObject.local ? 'local': 'external');
+    if(!group.local && !group.external) {
+      console.log('No Links Found');
+      return;
+    }
+    const sortedColl = _.sortBy(group.local, [function(ast) {
+      return ast.fileStats.size;
+    }]);
     _.each(sortedColl.reverse(), (ast) => {
       const size = filesize(ast.fileStats.size, { base: 10 });
       const absPath = ast.urlObject.absPath;
       const relPath = path.relative(path.dirname(indexPath), absPath);
       table.push([ast.tagName, relPath, size]);
+    });
+    _.each(group.external, (ast) => {
+      const absPath = ast.urlObject.absPath;
+      table.push([ast.tagName, absPath, 'NA']);
     });
     console.log(table.toString());
   });

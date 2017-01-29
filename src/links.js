@@ -7,11 +7,18 @@ let store = {};
 export const parseFile = function(filePath, result) {
   store = result;
   const html = fs.readFileSync(filePath, "utf8",);
+  return processHTML(html, filePath);
+}
+const processHTML = function(html, filePath) {
   parse(html, store, filePath);
   const links = _.keys(store);
-  return Promise.all(links.map(processLinks));
+  const values = _.values(store);
+  let p = [];
+  if(_.find(values, value => !value.status)) {
+    p = links.map(processLinks);
+  }
+  return Promise.all(p);
 }
-
 export const attachStats = function(link) {
   const ast = store[link];
   return new Promise((resolve, reject) => {
@@ -33,7 +40,9 @@ export const readFile = function(link) {
         reject(err);
       }
       ast.fileContents = data;
-      resolve(data);
+      processHTML(data, link).then(function() {
+        resolve();
+      });
     });
   });
 }
