@@ -23,8 +23,8 @@ const flags = cli.flags;
 let sourcePath = flags.path ? path.resolve(flags.path): process.cwd();
 const store = {};
 const table = new Table({
-  head: ['Link', 'Size'],
-  colWidths: [100, 25],
+  head: ['Type', 'Link', 'Size'],
+  colWidths: [25, 100, 25],
   style: { head: ['red'], border: ['white'] },
   chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' }
 });
@@ -39,7 +39,9 @@ try {
     const sortedColl = _.sortBy(astColl, [function(ast) { return ast.fileStats.size; }]);
     _.each(sortedColl.reverse(), (ast) => {
       const size = filesize(ast.fileStats.size, { base: 10 });
-      table.push([ast.urlObject.absPath, size]);
+      const absPath = ast.urlObject.absPath;
+      const relPath = path.relative(path.dirname(indexPath), absPath);
+      table.push([ast.tagName, relPath, size]);
     });
     console.log(table.toString());
   });
