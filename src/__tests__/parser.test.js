@@ -1,6 +1,6 @@
 import assert from 'assert';
 import path from 'path';
-import parser from '..';
+import { parse } from '../parser';
 
 const polymerUrl = 'bower_components/polymer/polymer.html';
 const localUrlFn = function(ext, bower, componentName = 'custom-element') {
@@ -17,7 +17,7 @@ describe('link', function () {
     const href = localUrlFn('html', true);
     const absPath = path.resolve('', href);
     const html = `<link href="${href}" rel="import">`;
-    const store = parser.parse(html, {}, 'test.js');
+    const store = parse(html, {}, 'test.js');
     const links = Object.keys(store);
     const link = links[0];
     const linkAST = store[link];
@@ -28,7 +28,7 @@ describe('link', function () {
   it('returns external href correctly', function () {
     const href = externalUrlFn('html', true);
     const html = `<link href="${href}" rel="import">`;
-    const store = parser.parse(html, {}, 'test.js');
+    const store = parse(html, {}, 'test.js');
     const links = Object.keys(store);
     const link = links[0];
     const linkAST = store[link];
@@ -42,7 +42,7 @@ describe('script', function () {
   it('returns local src correctly', function () {
     const href = localUrlFn('js', true);
     const html = `<script src="${href}">blah</script>`;
-    const store = parser.parse(html, {}, 'test.js');
+    const store = parse(html, {}, 'test.js');
     const links = Object.keys(store);
     const link = links[0];
     const linkAST = store[link];
@@ -52,7 +52,7 @@ describe('script', function () {
   it('returns external href correctly', function () {
     const href = externalUrlFn('js', true);
     const html = `<script src="${href}">blah</script>`;
-    const store = parser.parse(html, {}, 'test.js');
+    const store = parse(html, {}, 'test.js');
     const links = Object.keys(store);
     const link = links[0];
     const linkAST = store[link];
@@ -61,7 +61,7 @@ describe('script', function () {
   });
   it('skips script without src', function () {
     const html = `<script>blah</script>`;
-    const store = parser.parse(html, {}, 'test.js');
+    const store = parse(html, {}, 'test.js');
     const links = Object.keys(store);
     assert.equal(0, links.length);
   });

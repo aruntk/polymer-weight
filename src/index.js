@@ -1,6 +1,6 @@
 import * as parser from './parser';
 import * as _ from 'lodash';
+import * as linkOps from './links';
 
-const weight = {};
-export default _.extend(weight, parser);
-
+const weight = { parser, linkOps };
+export default weight;

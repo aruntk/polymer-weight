@@ -1,5 +1,5 @@
 import assert from 'assert';
-import parser from '..';
+import { parse } from '../parser';
 
 describe('cli', function () {
   it('test', function () {
