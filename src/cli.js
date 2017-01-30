@@ -25,8 +25,8 @@ let sourcePath = flags.path ? path.resolve(flags.path): process.cwd();
 const tDepth = flags.depth;
 const store = {};
 const table = new Table({
-  head: ['Type', 'Link', 'Net Weight', 'Standalone Weight', 'file size'],
-  colWidths: [10, 80, 15, 20, 15],
+  head: ['#', 'Type', 'Link', 'Net Weight', 'Standalone Weight', 'file size'],
+  colWidths: [5, 10, 80, 15, 20, 15],
   style: { head: ['red'], border: ['white'] },
   chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' }
 });
@@ -60,11 +60,12 @@ try {
     }]);
 
     sortedTable.push({
-      arr : ['Total', path.basename(indexPath), nSize, 'NA', fSize],
+      arr : ['Total', path.basename(indexPath), nSize, ' ⬅ ', fSize],
       detail: { size: nSize },
     });
 
-    _.each(sortedTable.reverse(), function(a) {
+    _.each(sortedTable.reverse(), function(a, i) {
+      a.arr.splice(0, 0, i || '');
       table.push(a.arr);
     });
 
