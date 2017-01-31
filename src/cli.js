@@ -3,8 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import meow from 'meow';
 import filesize from 'filesize';
-import Table from 'cli-table';
+import Table from 'cli-table2';
 import * as _ from 'lodash';
+import windowSize from 'window-size';
 import { parseFile } from './links';
 
 const cli = meow(`
@@ -24,9 +25,13 @@ const flags = cli.flags;
 let sourcePath = flags.path ? path.resolve(flags.path): process.cwd();
 const tDepth = flags.depth;
 const store = {};
+function getWidth(p) {
+  return Math.round(p * (windowSize.width - 14) / 100);
+}
+const colWidths = [4, 5, 34, 8, 8, 6, 35].map(getWidth);
 const table = new Table({
-  head: ['#', 'Type', 'Link', 'Net Weight', 'Standalone Weight', 'file size'],
-  colWidths: [5, 10, 80, 15, 20, 15],
+  head: ['#', 'Type', 'Link', 'Net Weight', 'Standalone Weight', 'file size', 'occurances'],
+  colWidths,
   style: { head: ['red'], border: ['white'] },
   chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' }
 });
@@ -60,13 +65,14 @@ try {
     }]);
 
     sortedTable.push({
-      arr : ['Total', path.basename(indexPath), nSize, ' ⬅ ', fSize],
+      arr : ['Total', path.basename(indexPath), nSize, ' ⬅ ', fSize, ''],
       detail: { size: nSize },
     });
 
     _.each(sortedTable.reverse(), function(a, i) {
-      a.arr.splice(0, 0, i || '');
-      table.push(a.arr);
+      let arr = _.map(a.arr, breakLine);
+      arr.splice(0, 0, i || '');
+      table.push(arr);
     });
 
     console.log(table.toString());
@@ -118,26 +124,42 @@ function calcOtherWeights(links, filePath, fSize) {
 function toTableArray(group, initialIndexSize, indexPath) {
   let netIndexSize = initialIndexSize;
   const arr = [];
+const indexDir = path.dirname(indexPath);
   _.each(group.local, (ast) => {
     netIndexSize += ast.fileStats.size;
     const fSize = filesize(ast.fileStats.size, { base: 10 });
     const nSize = filesize(ast.fileStats.nSize, { base: 10 });
     const sSize = filesize(ast.fileStats.sSize, { base: 10 });
     const absPath = ast.urlObject.absPath;
-    const relPath = path.relative(path.dirname(indexPath), absPath);
+    const relPath = path.relative(indexDir, absPath);
+    const occurances = getOccurances(ast.occurances, indexDir);
     arr.push({
-      arr : [ast.tagName, relPath, nSize, sSize, fSize],
+      arr : [ast.tagName, relPath, nSize, sSize, fSize, occurances],
       detail: { size: ast.fileStats.sSize  },
     });
   });
   _.each(group.external, (ast) => {
     const absPath = ast.urlObject.absPath;
+    const occurances = getOccurances(ast.occurances, indexDir);
     arr.push({
-      arr : [ast.tagName, absPath, 'NA', 'NA', 'NA'],
+      arr : [ast.tagName, absPath, 'NA', 'NA', 'NA', occurances],
       detail: { size: 0 },
     });
   });
   return arr;
 }
 
+function getOccurances(occurances, dirname) {
+  const o = occurances[0];
+  const parent = path.relative(dirname, o.filePath);
+  const others = occurances.length - 1;
+  return others ? `${parent} and ${others} more`: parent;
+}
 
+function breakLine(str, i) {
+  const cW = colWidths[i + 1] - 2; // 2 for padding
+  const bL = cW > 0 ? cW : 1;
+  const r = new RegExp(`.{1,${cW}}`, 'g');
+  const m = str.match(r);
+  return m ? m.join('\n') : '';
+}
