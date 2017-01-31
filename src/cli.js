@@ -5,6 +5,9 @@ import meow from 'meow';
 import filesize from 'filesize';
 import Table from 'cli-table';
 import * as _ from 'lodash';
+import { Analyzer } from 'polymer-analyzer';
+import { FSUrlLoader } from 'polymer-analyzer/lib/url-loader/fs-url-loader';
+import 'babel-polyfill';
 import { parseFile } from './links';
 
 const cli = meow(`
@@ -30,51 +33,62 @@ const table = new Table({
   style: { head: ['red'], border: ['white'] },
   chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' }
 });
-
-try {
-  const stat = fs.statSync(sourcePath);
-  const isDir = stat.isDirectory();
-  const indexPath = isDir ? path.resolve(sourcePath, './index.html') : sourcePath;
-  parseFile(indexPath, store).then((r) => {
-    const localLinks = _.filter(_.values(store), ast => ast.urlObject.local);
-    const indexWeight = calcOtherWeights(localLinks, indexPath, stat.size);
-    const fSize = filesize(stat.size, { base: 10 });
-    const nSize = filesize(indexWeight.nSize, { base: 10 });
-    const astColl = _.values(store);
-    let visibleColl;
-
-    if(tDepth) {
-      let visibleLinks = [indexPath];
-      for(let i = 0; i < tDepth; i += 1) {
-        visibleLinks = visibleLinks.concat(walkLinks(astColl, visibleLinks));
-      }
-      visibleColl = _.values(_.pick.apply(null, [store].concat(visibleLinks)));
-    }
-
-    const group = _.groupBy(visibleColl || astColl, ast => ast.urlObject.local ? 'local': 'external');
-
-    const tableArray = toTableArray(group, stat.size, indexPath);
-
-    const sortedTable = _.sortBy(tableArray, [function(a) {
-      return a.detail.size;
-    }]);
-
-    sortedTable.push({
-      arr : ['Total', path.basename(indexPath), nSize, ' ⬅ ', fSize],
-      detail: { size: nSize },
+{ 
+  async function foo() {
+    const analyzer = new Analyzer({
+      urlLoader: new FSUrlLoader(path.dirname(sourcePath))
     });
-
-    _.each(sortedTable.reverse(), function(a, i) {
-      a.arr.splice(0, 0, i || '');
-      table.push(a.arr);
-    });
-
-    console.log(table.toString());
-  });
+    console.log(analyzer.analyzePackage)
+    const project = await analyzer.analyzePackage();
+    console.log(project);
+  }
+  foo();
 }
-catch(e) {
-  console.log(e);
-}
+
+// try {
+  // const stat = fs.statSync(sourcePath);
+  // const isDir = stat.isDirectory();
+  // const indexPath = isDir ? path.resolve(sourcePath, './index.html') : sourcePath;
+  // parseFile(indexPath, store).then((r) => {
+    // const localLinks = _.filter(_.values(store), ast => ast.urlObject.local);
+    // const indexWeight = calcOtherWeights(localLinks, indexPath, stat.size);
+    // const fSize = filesize(stat.size, { base: 10 });
+    // const nSize = filesize(indexWeight.nSize, { base: 10 });
+    // const astColl = _.values(store);
+    // let visibleColl;
+
+    // if(tDepth) {
+      // let visibleLinks = [indexPath];
+      // for(let i = 0; i < tDepth; i += 1) {
+        // visibleLinks = visibleLinks.concat(walkLinks(astColl, visibleLinks));
+      // }
+      // visibleColl = _.values(_.pick.apply(null, [store].concat(visibleLinks)));
+    // }
+
+    // const group = _.groupBy(visibleColl || astColl, ast => ast.urlObject.local ? 'local': 'external');
+
+    // const tableArray = toTableArray(group, stat.size, indexPath);
+
+    // const sortedTable = _.sortBy(tableArray, [function(a) {
+      // return a.detail.size;
+    // }]);
+
+    // sortedTable.push({
+      // arr : ['Total', path.basename(indexPath), nSize, ' ⬅ ', fSize],
+      // detail: { size: nSize },
+    // });
+
+    // _.each(sortedTable.reverse(), function(a, i) {
+      // a.arr.splice(0, 0, i || '');
+      // table.push(a.arr);
+    // });
+
+    // console.log(table.toString());
+  // });
+// }
+// catch(e) {
+  // console.log(e);
+// }
 
 function walkLinks(links, filePaths) {
 
