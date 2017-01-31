@@ -32,7 +32,7 @@ const colWidths = [4, 5, 34, 8, 8, 6, 35].map(getWidth);
 const table = new Table({
   head: ['#', 'Type', 'Link', 'Net Weight', 'Standalone Weight', 'file size', 'occurances'],
   colWidths,
-  style: { head: ['red'], border: ['white'] },
+  style: { head: ['red'], border: ['green'] },
   chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' }
 });
 
