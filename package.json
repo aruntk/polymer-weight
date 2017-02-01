@@ -1,6 +1,6 @@
 {
   "name": "polymer-weight",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "size of imported components and scripts",
   "main": "index.js",
   "bin": {
