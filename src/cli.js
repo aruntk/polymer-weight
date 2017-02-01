@@ -30,7 +30,7 @@ function getWidth(p) {
 }
 const colWidths = [4, 5, 34, 8, 8, 6, 35].map(getWidth);
 const table = new Table({
-  head: ['#', 'Type', 'Link', 'Net Weight', 'Standalone Weight', 'file size', 'occurances'],
+  head: ['#', 'Type', 'Link', 'Net Weight', 'Standalone Weight', 'File Size', 'Occurances'],
   colWidths,
   style: { head: ['red'], border: ['green'] },
   chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' }
@@ -44,7 +44,8 @@ try {
     const localLinks = _.filter(_.values(store), ast => ast.urlObject.local);
     const indexWeight = calcOtherWeights(localLinks, indexPath, stat.size);
     const fSize = filesize(stat.size, { base: 10 });
-    const nSize = filesize(indexWeight.nSize, { base: 10 });
+    const nSize = filesize(indexWeight.sharedSize + indexWeight.sSize, { base: 10 });
+    const sSize = filesize(indexWeight.sSize, { base: 10 });
     const astColl = _.values(store);
     let visibleColl;
 
@@ -65,7 +66,7 @@ try {
     }]);
 
     sortedTable.push({
-      arr : ['Total', path.basename(indexPath), nSize, ' ⬅ ', fSize, ''],
+      arr : ['Total', path.basename(indexPath), nSize, sSize, fSize, ''],
       detail: { size: nSize },
     });
 
@@ -97,7 +98,7 @@ function walkLinks(links, filePaths) {
 }
 
 function calcOtherWeights(links, filePath, fSize) {
-  let nSize = 0;
+  let sharedSize = 0;
   let sSize = 0;
   const immChildren = _.filter(links, (link) => {
     return _.find(link.occurances, (o) => {
@@ -106,25 +107,27 @@ function calcOtherWeights(links, filePath, fSize) {
   });
   if(immChildren) {
     _.each(immChildren, (c) => {
-      const childSize = calcOtherWeights(links, c.urlObject.absPath, c.fileStats.size);
-      nSize += childSize.sSize;
+      calcOtherWeights(links, c.urlObject.absPath, c.fileStats.size);
+      sharedSize += c.fileStats.sharedSize || 0;
       if(c.occurances.length === 1) {
-        sSize += childSize.sSize;
+        sSize += c.fileStats.sSize;
+      } else {
+        sharedSize += c.fileStats.size / c.occurances.length;
       }
     });
   }
-  nSize += fSize;
   sSize += fSize;
   if(store[filePath]) {
-    store[filePath].fileStats.nSize = nSize;
+    store[filePath].fileStats.nSize = sSize + sharedSize;
+    store[filePath].fileStats.sharedSize = sharedSize;
     store[filePath].fileStats.sSize = sSize;
   }
-  return { nSize, sSize };
+  return { sSize, sharedSize };
 }
 function toTableArray(group, initialIndexSize, indexPath) {
   let netIndexSize = initialIndexSize;
   const arr = [];
-const indexDir = path.dirname(indexPath);
+  const indexDir = path.dirname(indexPath);
   _.each(group.local, (ast) => {
     netIndexSize += ast.fileStats.size;
     const fSize = filesize(ast.fileStats.size, { base: 10 });
