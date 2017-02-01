@@ -66,7 +66,7 @@ try {
     }]);
 
     sortedTable.push({
-      arr : ['Total', path.basename(indexPath), nSize, sSize, fSize, ''],
+      arr : ['Total', path.basename(indexPath), nSize, ' ⬅ ', fSize, ''],
       detail: { size: nSize },
     });
 
